@@ -4,13 +4,13 @@ const sql = require('../config/db.config');
 const Post = function (post) {
   this.user_id = post.user_id;
   this.content = post.content;
-  this.imageURL;
+  this.imageURL = post.imageURL;
   this.createdAt;
   this.updateAt;
 };
 
-Post.create = (newPost, result) => {
-  sql.query("INSERT INTO post SET ?, createdAt = now(), updateAt = now()", newPost, (err, res) => {
+Post.create = (post, result) => {
+  sql.query("INSERT INTO post SET ?, createdAt = now(), updateAt = now()", post, (err, res) => {
     if (err) {
       console.log("error: ", err);
       result(err, null);
@@ -22,15 +22,21 @@ Post.create = (newPost, result) => {
 };
 
 Post.getAll = (offset, result) => {
-  sql.query(
-    `SELECT post.updateAt, user.pseudo, post.content, post.imageURL, comment.user_id, comment.updateAt ,comment.content FROM post INNER JOIN user ON post.user_id = user.id INNER JOIN comment ON post.id = comment.post_id ORDER BY post.updateAt DESC LIMIT 5 OFFSET ${offset}`,
+  sql.query(`SELECT post.id, user.pseudo, user.id AS userId, DATE_FORMAT(post.updateAt, 'le %e %m %y') AS date, post.content
+  FROM post
+  INNER JOIN user ON user.id = post.user_id
+  ORDER BY post.updateAt DESC LIMIT 5 OFFSET ${offset};
+  SELECT comment.post_id AS id, user.pseudo, user.id AS userId, DATE_FORMAT(comment.updateAt, 'le %e %m %y') AS date, comment.content
+  FROM comment
+  INNER JOIN user ON user.id = comment.user_id
+  WHERE EXISTS (SELECT * FROM post ORDER BY post.updateAt DESC LIMIT 5 OFFSET ${offset})
+  ORDER BY comment.updateAt DESC`,
     (err, res) => {
       if (err) {
         console.log("error: ", err);
-        result(null, err);
+        result(err, null);
         return;
       }
-      console.log("Posts: ", res);
       result(null, res);
     });
 };

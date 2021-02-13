@@ -5,19 +5,19 @@ const Comment = function(comment) {
   this.post_id = comment.post_id;
   this.user_id = comment.user_id;
   this.content = comment.content;
-  this.createdAt = user.createdAt;
-  this.updateAt = user.updateAt;
+  this.createdAt;
+  this.updateAt;
 };
 
-Comment.create = (newComment, result) => {
-  sql.query("INSERT INTO comment SET ?", newComment, (err, res) => {
+Comment.create = (comment, result) => {
+  sql.query("INSERT INTO comment SET ?, createdAt = now(), updateAt = now()", comment, (err, res) => {
     if (err) {
       console.log("error: ", err);
       result(err, null);
       return;
     }
-    console.log("created comment: ", { id: res.insertId, ...newComment });
-    result(null, { id: res.insertId, ...newComment });
+    console.log("created comment: ", res.insertId );
+    result(null, res.insertId );
   });
 };
 

@@ -20,7 +20,7 @@ exports.signup = (req, res, next) => {
   if (!emailValidator.validate(req.body.email)) {
     throw res.status(400).json({ message: 'Adresse mail non valide !' })
   } else if (!schema.validate(req.body.password)) {
-    throw res.status(400).json({ message: 'Mot de passe non valide !' });
+    throw res.status(400).json({ message: 'Mot de passe non valide !' })
   } else {
     bcrypt.hash(req.body.password, 10)
       .then(hash => {
@@ -64,6 +64,7 @@ exports.login = (req, res, next) => {
           } else {
             res.status(201).json({
               userId: result[0].id,
+              admin: result[0].admin,
               token: jwt.sign(
                 { userId: result[0].id },
                 process.env.AUTH_TOKEN,
@@ -78,45 +79,50 @@ exports.login = (req, res, next) => {
 };
 
 exports.disable = (req, res, next) => {
-  User.remove(req.body.userId, (err, data) => {
+  User.remove(req.body.userId, (err, result) => {
     if (err) {
       if (err.kind === "not_found") {
         res.status(404).send({ message: `Utilisateur ${req.body.id} non trouvé !` });
       } else {
         res.status(500).send({ message: `Utilisateur ${req.body.id} non supprimé !` });
       }
-    } else res.status(201).json({ message: `Compte détruit avec succès !` });
+    } else res.status(201).send({ message: `Compte détruit avec succès !` });
   });
 };
 
-exports.findUserId = (req, res) => {
-  User.findById(req.params.userId, (err, data) => {
+exports.findUserId = (req, res, next) => {
+  User.findById(req.params.userId, (err, result) => {
     if (err) {
       if (err.kind === "not_found") {
         res.status(404).send({ message: `Utilisateur non trouvé avec id ${req.params.userId}.` });
       } else {
         res.status(500).send({ message: "Erreur lors de la récupération du client avec l'ID: " + req.params.userId });
       }
-    } else res.status(200).send(data);
+    } else res.status(200).send(result);
   });
 };
 
-exports.update = (req, res) => {
-  if (!req.body) { res.status(400).send({ message: "Content can not be empty!" }); }
+exports.update = (req, res, next) => {
+  if (!emailValidator.validate(req.body.email)) {
+    throw res.status(400).json({ message: 'Adresse mail non valide !' })
+  } else if (!schema.validate(req.body.password)) {
+    throw res.status(400).json({ message: 'Mot de passe non valide !' });
+  }
   let id = req.body.userId;
   delete req.body.userId;
-  if (req.body.oldPassword = req.body.password) {
+  if (req.body.oldPassword === req.body.password) {
     delete req.body.oldPassword;
-    User.updateById(id, new User(req.body)),
-      (err, data) => {
-        if (err) {
-          if (err.kind === "not_found") {
-            res.status(404).send({ message: `Utilisateur non trouvé avec id ${req.body.userId}.` });
-          } else {
-            res.status(500).send({ message: "Erreur lors de la modification avec id utilisateur: " + req.body.userId });
-          }
-        } else res.status(201).send(data);
+    User.updateById(id, new User(req.body), (err, result) => {
+      if (err) {
+        if (err.kind === "not_found") {
+          res.status(404).send({ message: `Utilisateur non trouvé avec id ${req.body.userId}.` });
+        } else {
+          res.status(500).send({ message: "Erreur lors de la modification avec id utilisateur: " + req.body.userId });
+        }
+      } else {
+        res.status(201).send({ message: "Contact mis à jour" });
       }
+    })
   } else {
     bcrypt.hash(req.body.password, 10)
       .then(hash => {
@@ -125,37 +131,19 @@ exports.update = (req, res) => {
           pseudo: req.body.pseudo,
           password: hash,
         });
-        User.updateById(id, user),
-          (err, data) => {
-            if (err) {
-              if (err.kind === "not_found") {
-                res.status(404).send({ message: `Utilisateur non trouvé avec id ${req.body.userId}.` });
-              } else {
-                res.status(500).send({ message: "Erreur lors de la modification avec id utilisateur: " + req.body.userId });
-              }
-            } else res.status(201).send(data);
+        User.updateById(id, user, (err, result) => {
+          if (err) {
+            if (err.kind === "not_found") {
+              res.status(404).send({ message: `Utilisateur non trouvé avec id ${req.body.userId}.` });
+            } else {
+              res.status(500).send({ message: "Erreur lors de la modification avec id utilisateur: " + req.body.userId });
+            }
+          } else {
+            res.status(201).send({ message: "Utilisateur mis à jour" });
           }
+        })
       })
       .catch(error => res.status(500).json({ error }));
   }
 };
-
-
-
-/*
-createUser = async (req, res, next) => {
-        this.checkValidation(req);
-
-        await this.hashPassword(req);
-
-        const result = await UserModel.create(req.body);
-
-
-// hash password if it exists
-    hashPassword = async (req) => {
-        if (req.body.password) {
-            req.body.password = await bcrypt.hash(req.body.password, 8);
-        }
-
-*/
 

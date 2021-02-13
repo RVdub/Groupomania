@@ -2,14 +2,7 @@ const Post = require('../models/post');
 const fs = require('fs'); // file system
 
 
-exports.getAllPost = (req, res, next) => {
-  Sauce.find()
-    .then(sauces => res.status(200).json(sauces))
-    .catch(error => res.status(400).json({ error }));
-};
-
 exports.createPost = (req, res, next) => {
-  console.log(req.body);
   if (!req.body) {
     res.status(400).send({ message: "Content can not be empty!" });
   }
@@ -19,14 +12,22 @@ exports.createPost = (req, res, next) => {
     imageURL: req.file
       ? `${req.protocol}://${req.get("host")}/images/${req.file.filename}`
       : ""
-  }); console.log(post);
-  Post.create(post, (err, res) => {
+  });
+  Post.create(post, (err, result) => {
     if (err) {
       res.status(500).send({ message: err.message || "Some error occurred while creating the Post." })
     } else {
-      res.status(201).send({ message: `Post publié !` })
+      res.status(201).send({ message: `Post ${result} publié !` })
     }
   })
+};
+
+exports.getAllPost = (req, res, next) => {
+  Post.getAll(req.params.offset, (err, data) => {
+    if (err)
+      res.status(500).send({ message: err.message || "Some error occurred while retrieving customers." });
+      else res.send(data);
+  });
 };
 
 exports.modifyPost = (req, res, next) => {

@@ -11,8 +11,8 @@ stayConnected();
 
 // Test état de la connexion
 function stayConnected() {
-  if (localStorage.getItem('access_token') && localStorage.getItem('userId')) {
-    showPosts();
+  if (localStorage.getItem('token') && localStorage.getItem('userId')) {
+    getAllPost(0);
   } else if (localStorage.getItem('userId')) {
     logIn();
   } else { signUp(); }
@@ -106,10 +106,8 @@ function signupApi() {
     {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
+        "Content-Type": "application/json"
       },
-      credentials: "include",
-      cache: "no-cache",
       body: JSON.stringify({
         "email": email,
         "pseudo": pseudo,
@@ -122,12 +120,12 @@ function signupApi() {
       let token = responseJson.token;
       console.log('userId= ', userId, 'token', token); // affichage d vérification provisoire
       if (!userId) {
-        template.innerHTML += `<p class="text-danger">Le serveur dit: ${responseJson.message}</p>`;
+        template.innerHTML = `<p class="text-danger">Le serveur dit: ${responseJson.message}</p>`;
         return;
       };
       localStorage.setItem("userId", userId);
-      localStorage.setItem("access_token", token);
-      showPosts();
+      localStorage.setItem("token", token);
+      getAllPost(0);
     })
     .catch(error => alert("Une erreur est survenue: " + error.message))
 }
@@ -140,8 +138,6 @@ function loginApi() {
       headers: {
         "Content-Type": "application/json",
       },
-      credentials: "include",
-      cache: "no-cache",
       body: JSON.stringify({
         "pseudo": pseudo,
         "password": password
@@ -150,16 +146,18 @@ function loginApi() {
     .then(response => response.json())
     .then((responseJson) => {
       let userId = responseJson.userId;
+      let admin = responseJson.admin;
       let token = responseJson.token;
-      console.log('userID ', userId, 'token ', token); // affichage provisoire
+      console.log('userID ', userId, 'admin=', admin, 'token ', token); // affichage provisoire
       if (!userId) {
-        template.innerHTML += `<p class="text-danger">Erreur de saisie: ${responseJson.message} ${responseJson.error}</p>`;
+        template.innerHTML = `<p class="text-danger">Erreur de saisie: ${responseJson.message} ${responseJson.error}</p>`;
         return;
       };
       localStorage.setItem("userId", userId);
-      localStorage.setItem("access_token", token);
-      showPosts();
+      localStorage.setItem("admin", admin);
+      localStorage.setItem("token", token);
     })
+    .then(() => getAllPost(0))
     .catch(error => alert("Une erreur est survenue: " + error.message))
 }
 

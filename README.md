@@ -1,4 +1,5 @@
 # Groupomania #
+# EN COURS DE DEVELOPPEMENT #
 
 Projet 7 de la formation de développeur web d'OpenClassrooms.
 
@@ -17,6 +18,5 @@ Créer votre fichier .env sur la racine avec les variables environnement HOST, U
 Node and npm doivent être aussi installés sur votre ordinateur. Puis tapez npm install dans l'invite de commande (répertoire backend).
 
 Pour faire fonctionner cette API, tapez: nodemon sur la console de commande.
-Puis ouvrez le site web sur votre navigateur: http://localhost
-Le serveur tourne normalement sous le port 3000 par défaut.
+Puis ouvrez le site web sur votre navigateur: http://localhost:<port>/frontend
 

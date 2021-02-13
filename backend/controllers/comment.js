@@ -2,19 +2,21 @@ const Comment = require('../models/comment');
 
 
 exports.createComment = (req, res, next) => {
-  const sauceObject = JSON.parse(req.body.sauce);
-  delete sauceObject._id;
-  const sauce = new Sauce({
-    ...sauceObject,
-    likes: 0,
-    dislikes: 0,
-    usersLiked: [],
-    usersDisliked: [],
-    imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+  if (!req.body) {
+    res.status(400).send({ message: "Content can not be empty!" });
+  }
+  const comment = new Comment({
+    post_id: req.body.postId,
+    user_id: req.body.userId,
+    content: req.body.content
   });
-  sauce.save()
-    .then(() => res.status(201).json({ message: 'Objet sauce enregistré !' }))
-    .catch(error => res.status(400).json({ error }));
+  Comment.create(comment, (err, result) => {
+    if (err) {
+      res.status(500).send({ message: err.message || "Some error occurred while creating the Post." })
+    } else {
+      res.status(201).send({ message: `Commentaire ${result} publié !` })
+    }
+  })
 };
 
 exports.modifyComment = (req, res, next) => {

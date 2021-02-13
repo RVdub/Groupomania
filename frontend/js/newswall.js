@@ -4,16 +4,16 @@ let pseudo;
 let password;
 let userId;
 let access_token;
-let invisible = "invisible";
 let content;
 let filename;
 let oldPassword;
-
+let offset = 0;
+let page = 1;
 
 
 // DEUXIEME PAGE -------------------------------------------------------------------------------------------------------
 // Affichage du fil d'actualité
-function showPosts() {
+function showPosts(tab) {
     // Affichage <navbar>
     navbar.innerHTML =
         `<nav class="navbar">
@@ -28,6 +28,7 @@ function showPosts() {
     </nav>`;
     // Affichage page <template>
     document.querySelector("h1").textContent = "Bienvenue sur le fil d'actualité ...";
+    let invisible;
     template.innerHTML =
         `<div class="accordion" id="inputPost">
             <div class="accordion-item">
@@ -69,46 +70,59 @@ function showPosts() {
                 </div>
             </div>
         </div>`;
-    for (let i = 0; i < 5; i++) {
+    for (let i = 0; i < tab[0].length; i++) {
+        if (tab[0][i].userId == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
+            invisible = "visible";
+        } else {
+            invisible = "invisible";
+        }
+        const postId = tab[0][i].id;
         template.innerHTML +=
             `<div class="accordion" id="accordionParent${i}">
                 <div class="accordion-item">
                     <h2 class="accordion-header bg-secondary" id="headingPost${i}">
                         <button class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePost${i}" aria-expanded="true" aria-controls="collapsePost${i}">
-                            André a publié le 12.1.21
+                            ${tab[0][i].pseudo} a publié ${tab[0][i].date}
                         </button>
                     </h2>
                     <div id="collapsePost${i}" class="accordion-collapse collapse show" aria-labelledby="headingPost${i}" data-bs-parent="#accordionParent${i}">
                         <div class="accordion-body">
-                            <strong>This is the first item\'s accordion body.</strong> It is not hidden by default.
+                            ${tab[0][i].content}
                             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                <button type="button" class="btn btn-secondary btn-sm ${invisible}" id="modifyPost">Modifier</button>
-                                <button type="button" class="btn btn-secondary btn-sm ${invisible}" id="deletePost">Supprimer</button>
+                                <button type="button" class="btn btn-secondary btn-sm ${invisible}" id="modifyPost${i}">Modifier</button>
+                                <button type="button" class="btn btn-secondary btn-sm ${invisible}" id="deletePost${i}">Supprimer</button>
                                 <button class="btn btn-outline-info me-md-2" type="button"><i class="far fa-thumbs-up"> 0</i ></button>
                                 <button class="btn btn-outline-info" type="button"><i class="far fa-thumbs-down"> 0</i ></button>
                             </div>
                         </div>
                     </div>
                 </div>`;
-        for (let j = 0; j < 2; j++) {
-            template.innerHTML +=
-                `<div class="accordion-item">
+        for (let j = 0; j < tab[1].length; j++) {
+            if (postId === tab[1][j].id) {
+                if (tab[1][j].userId == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
+                    invisible = "visible";
+                } else {
+                    invisible = "invisible";
+                }
+                template.innerHTML +=
+                    `<div class="accordion-item">
                     <h2 class="accordion-header" id="headingComment${i}_${j}">
                         <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseComment${i}_${j}" aria-expanded="false" aria-controls="collapseComment${i}_${i}">
-                            Hervé a commenté le 31.1.21
+                            ${tab[1][j].pseudo} a commenté ${tab[1][j].date}
                         </button>
                     </h2>
                         <div id="collapseComment${i}_${j}" class="accordion-collapse collapse" aria-labelledby="headingComment${i}_${j}" data-bs-parent="#accordionParent${i}">
                             <div class="accordion-body">
-                                <strong>This is the second item\'s accordion body.</strong> It is hidden by default.
+                            ${tab[1][j].content}
                                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                                    <button type="button" class="btn btn-secondary btn-sm ${invisible}" id="modifyComment">Modifier</button>
-                                    <button type="button" class="btn btn-secondary btn-sm ${invisible}" id="deleteComment">Supprimer</button>
+                                    <button type="button" class="btn btn-secondary btn-sm ${invisible}" id="modifyComment${j}">Modifier</button>
+                                    <button type="button" class="btn btn-secondary btn-sm ${invisible}" id="deleteComment${j}">Supprimer</button>
                                 </div>
                             </div>
                         </div>
                 </div>
             </div>`;
+            }
         };
         template.innerHTML +=
             `<div class="accordion-item">
@@ -121,9 +135,9 @@ function showPosts() {
                 <div class="accordion-body">
                     <div class="form-group">
                         <div class="input-group">
-                            <textarea class="form-control" id="comment" aria-label="Avec zone de texte"></textarea>
+                            <textarea class="form-control" id="contentComment${i}" aria-label="Avec zone de texte"></textarea>
                             <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                                <button type="button" class="btn btn-secondary btn-sm" id="publishPost">Publier</button>
+                                <button type="button" class="btn btn-secondary btn-sm" value="${postId}" id="publishComment${i}">Publier</button>
                             </div>
                         </div>
                     </div>
@@ -132,28 +146,35 @@ function showPosts() {
         </div>`;
     };
     // Pagination
-    let k = 1;
     template.innerHTML +=
-        `<nav aria-label="Page navigation">
+        `<nav aria-label="pagination des résultats de recherche">
             <ul class="pagination justify-content-center pagination-sm">
-                <li class="page-item disabled"><a class="page-link" id="previous" tabindex="-1" aria-disabled="true">Précédent</a></li>
-                <li class="page-item active" aria-current="page"><span class="page-link">${k}</span></li>
-                <li class="page-item"><a class="page-link" id="secondPage">${k + 1}</a></li>
-                <li class="page-item"><a class="page-link" id="thirdPage">${k + 2}</a></li>
+                <li class="page-item"><a class="page-link" id="previous">Précédent</a></li>
+                <li class="page-item"><a class="page-link" id="firstPage">${page}</a></li>
+                <li class="page-item"><a class="page-link" id="secondPage">${page + 1}</a></li>
+                <li class="page-item"><a class="page-link" id="thirdPage">${page + 2}</a></li>
                 <li class="page-item"><a class="page-link" id="next">Suivant</a></li>
             </ul>
         </nav>`;
 
-    // Tous les boutons :
+    // Tous les boutons navbar
     // <Déconnexion>
     document.getElementById('disconnect').addEventListener("click", () => {
-        localStorage.removeItem("access_token");
+        localStorage.removeItem("token");
+        localStorage.removeItem("admin");
         window.location.href = "./index.html";
     });
     // <Modifier son compte>
-    document.getElementById("modifyAccount").addEventListener("click", modifyAccount);
+    document.getElementById("modifyAccount").addEventListener("click", () => {
+        if (localStorage.getItem("admin") == 1) return;
+        modifyAccount();
+    });
     // <Suppression de son compte>
-    document.getElementById("deleteAccount").addEventListener("click", deleteAccount);
+    document.getElementById("deleteAccount").addEventListener("click", () => {
+        if (localStorage.getItem("admin") == 1) return;
+        deleteAccount();
+    });
+    // Tous les boutons sur la page
     // <publier un post>
     document.getElementById("publishPost").addEventListener("click", () => {
         content = document.getElementById("content").value;
@@ -166,8 +187,51 @@ function showPosts() {
         };
         addPost();
     });
-    // la suite en stock    document.getElementById("").addEventListener("click", function() {});
+    // <publier un post avec une photo
 
+    // <publier un commentaire>
+    for (let i = 0; i < tab[0].length; i++) {
+        document.getElementById(`publishComment${i}`).addEventListener("click", () => {
+            content = document.getElementById(`contentComment${i}`).value;
+            idPost = document.getElementById(`publishComment${i}`).value;
+            // contrôle du contenu
+            if (content == '') return; // vérifier inputReg
+            const inputReg = /(?=.*?[<>`${}])/s;
+            if (inputReg.test(content)) {
+                alert('Caractères intedits: < > ` $ { }');
+                return;
+            };
+            addComment();
+        });
+    };
+    // <seconde page et troisième page> de la pagination
+    document.getElementById("previous").addEventListener("click", function () {
+        if (page < 2) return;
+        page -= 1;
+        document.getElementById("firstPage").textContent = (page);
+        document.getElementById("secondPage").textContent = (page + 1);
+        document.getElementById("thirdPage").textContent = (page + 2);
+    });
+    document.getElementById("next").addEventListener("click", function () {
+        page += 1;
+        document.getElementById("firstPage").textContent = (page);
+        document.getElementById("secondPage").textContent = (page + 1);
+        document.getElementById("thirdPage").textContent = (page + 2);
+    });
+    document.getElementById("firstPage").addEventListener("click", function () {
+        offset = (page - 1) * 5;
+        getAllPost(offset);
+    });
+    document.getElementById("secondPage").addEventListener("click", function () {
+        offset = (page) * 5;
+        getAllPost(offset);
+    });
+    document.getElementById("thirdPage").addEventListener("click", function () {
+        offset = (page + 1) * 5;
+        getAllPost(offset);
+    });
+
+    // la suite en stock    document.getElementById("").addEventListener("click", function() {});
 
 }
 
@@ -185,7 +249,9 @@ function deleteAccount() {
                 <button class="btn btn-success btn-sm" id="noButton" type="button">Non</button>
             </div>
         </div>`;
-    document.getElementById("noButton").addEventListener("click", showPosts);
+    document.getElementById("noButton").addEventListener("click", () => {
+        window.location.href = "./index.html";
+    });
     document.getElementById("yesButton").addEventListener("click", disableApi);
 }
 // Requête
@@ -197,15 +263,12 @@ function disableApi() {
             method: "DELETE",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${access_token}`
             },
-            credentials: "include",
-            mode: "cors",
-            cache: "no-cache",
             body: JSON.stringify({ "userId": userId }),
         })
         .then(response => response.json())
-        .then(() => {
+        .then((message) => {
+            console.log(message);
             localStorage.clear();
             window.location.href = "./index.html";
         })
@@ -215,17 +278,13 @@ function disableApi() {
 // Modification du compte
 function modifyAccount() {
     let userId = localStorage.getItem("userId");
-    let access_token = localStorage.getItem("access_token");
+    let token = localStorage.getItem("token");
     fetch("http://localhost:3000/api/" + userId,
         {
             method: "GET",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${access_token}`
             },
-            credentials: "include",
-            mode: "cors",
-            cache: "no-cache"
         })
         .then(response => response.json())
         .then((responseJson) => {
@@ -264,17 +323,13 @@ function modifyAccount() {
 // Requête
 function modifyAccountAPI() {
     let userId = localStorage.getItem("userId");
-    let access_token = localStorage.getItem("access_token");
+    let token = localStorage.getItem("token");
     fetch("http://localhost:3000/api/modifyAccount",
         {
             method: "PUT",
             headers: {
                 "Content-Type": "application/json",
-                "Authorization": `Bearer ${access_token}`
             },
-            credentials: "include",
-            mode: "cors",
-            cache: "no-cache",
             body: JSON.stringify({
                 "userId": userId,
                 "oldPassword": oldPassword,
@@ -284,56 +339,83 @@ function modifyAccountAPI() {
             }),
         })
         .then(response => response.json())
-        .then(() => {
-            if (!responseJson.userId || !responseJson.pseudo || !responseJson.password) {
-                template.innerHTML += `<p class="text-danger">Le serveur dit: ${responseJson.error} ${responseJson.message}</p>`
+        .then((responseJson) => {
+            if (responseJson) {
+                template.innerHTML = `<p class="text-danger">Le serveur dit: ${responseJson.message}</p>`;
+                return;
             } else {
-                showPosts();
+                window.location.href = "./index.html";
             }
         })
         .catch(error => alert("Une erreur est survenue: " + error.message))
 }
 
+//----------------------------------------------------------------------------------------------------------------------
 // Publication d'un Post
-// Envoi à l'API du contact et du tableau de produits
 function addPost() {
     let userId = localStorage.getItem("userId");
-    let access_token = localStorage.getItem("access_token");
+    let token = localStorage.getItem("token");
     fetch("http://localhost:3000/api/post",
         {
             method: "POST",
             headers: {
-                "Content-type": "application/json",
-                "Authorization": `Bearer ${access_token}`
+                "Content-type": "application/json"
             },
-            credentials: "include",
             body: JSON.stringify({
                 "userId": userId,
                 "content": content,
-                "filename": filename,
+                "filename": filename
             }),
         })
         .then(response => response.json())
-        .then((response) => {
-            if (!response.ok) {
-                throw new Error("HTTP error, status = " + response.status);
-            }
-            console.log(response.json());
-        })
-        .then((response) => {
-            console.log(response);//affichage de vérification
-            console.log(response.type);
-            console.log(response.url);
-            console.log(response.useFinalURL);
-            console.log(response.status);
-            console.log(response.ok);
-            console.log(response.statusText);
-            console.log(response.headers);
+        .then((message) => {
+            console.log(message);
+            getAllPost();
         })
         .catch(error => alert("Une erreur est survenue: " + error.message))
 }
 
+// Publication d'un commentaire sur un Post
+function addComment() {
+    let userId = localStorage.getItem("userId");
+    let token = localStorage.getItem("token");
+    fetch("http://localhost:3000/api/comment",
+        {
+            method: "POST",
+            headers: {
+                "Content-type": "application/json"
+            },
+            body: JSON.stringify({
+                "postId": idPost,
+                "userId": userId,
+                "content": content
+            }),
+        })
+        .then(response => response.json())
+        .then((message) => {
+            console.log(message);
+        })
+        .catch(error => alert("Une erreur est survenue: " + error.message))
+}
 
+// affichage des posts avec leurs commentaires associés
+//requête
+function getAllPost(offset) {
+    fetch(`http://localhost:3000/api/post/${offset}`,
+        {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json",
+            },
+        })
+        .then(response => response.json())
+        .then((responseJson) => {
+            const tab = responseJson;
+            console.log(tab);
+            showPosts(tab);
+        })
+        .catch(error => alert("Une erreur est survenue: " + error.message))
+}
 
 
 
