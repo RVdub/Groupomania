@@ -7,7 +7,10 @@ if (dotenv.error) { throw dotenv.error };
 module.exports = (req, res, next) => {
     try {
         const token = req.headers.authorization.split(' ')[1];
-        const decodedToken = jwt.verify(token, process.env.AUTH_TOKEN);
+        const decodedToken = jwt.verify(token, process.env.AUTH_TOKEN, function (err, decoded) {
+            if (err) { 
+                throw 'Session expired';}
+        });
         const userId = decodedToken.userId;
         if (req.body.userId && req.body.userId !== userId) {
             throw 'ID utilisateur non valide !';
@@ -19,16 +22,5 @@ module.exports = (req, res, next) => {
     }
 };
 
-/*
-jwt.verify(token, 'shhhhh', function(err, decoded) {
-    if (err) {
-        err = {
-          name: 'TokenExpiredError',
-          message: 'jwt expired',
-          expiredAt: 1408621000
-        }
-    }
-  });
 
-*/
 

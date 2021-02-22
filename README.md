@@ -9,14 +9,13 @@ Le projet consiste à construire un réseau social interne pour les employés de
 
 ## Technologie à utiliser ##
 
-Framework Express, serveur NodeJS, Base de données MySQL.
+Javascript, serveur backend NodeJS, Framework Express, Base de données MySQL.
 
 ## Comment lancer l'application ##
 
-Installer un serveur MySQL sur localhost. Utiliser le fichier sql dans la racine du projet pour créer la base de données.
-Créer votre fichier .env sur la racine avec les variables environnement HOST, USER, PASSWORD, DB (correspondant à votre serveur MySQL) et le code secret de votre choix pour AUTH_TOKEN.
-Node and npm doivent être aussi installés sur votre ordinateur. Puis tapez npm install dans l'invite de commande (répertoire backend).
+Installer un serveur MySQL sur localhost. Utiliser le fichier sql dans le répertoire backend du projet pour créer la base de données.
+Créer votre fichier .env dans le backend avec les variables environnement HOST, USER, PASSWORD, DB (correspondant à votre serveur MySQL) et le code secret de votre choix pour AUTH_TOKEN.
+Node and npm doivent être aussi installés sur votre ordinateur. Tapez ensuite npm install dans l'invite de commande (répertoire backend). Puis tapez: nodemon toujours sur l'invite.
 
-Pour faire fonctionner cette API, tapez: nodemon sur la console de commande.
 Puis ouvrez le site web sur votre navigateur: http://localhost:<port>/frontend
 

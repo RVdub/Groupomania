@@ -9,9 +9,6 @@
   <!-- Bootstrap CSS -->
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.0.0-beta1/dist/css/bootstrap.min.css" rel="stylesheet"
     integrity="sha384-giJF6kkoqNQ00vy+HMDP7azOuL0xtbfIcaT9wjKHr8RbDVddVHyTfAAsrekwKmP1" crossorigin="anonymous">
-  <!-- Font Awesome -->
-  <link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.4.1/css/all.css"
-    integrity="sha384-5sAR7xN1Nv6T6+dT2mhtzEpVJvfS3NScPQTrOxhwjIuvcA67KV2R5Jz6kr4abQsz" crossorigin="anonymous">
 
   <!--favicon-->
   <link rel="icon" href="<%= BASE_URL %>favicon.ico" />
@@ -27,21 +24,19 @@
 
 <body class="d-flex flex-column min-vh-100">
 
-  <div class="bg-dark">
+  <nav class="bg-dark">
     <div class="container">
       <div class="row">
         <div id="navbar"></div>
       </div>
     </div>
-  </div>
+  </nav>
 
   <main class="container">
     <div class="row">
       <h1 id="titre">Bienvenue !</h1>
-      <div id="template">
-
-        
-      </div>
+      <div id="template"></div>      
+      <div id="listMessage"></div>
     </div>
   </main>
 
@@ -59,9 +54,17 @@
     crossorigin="anonymous"></script>
 
   <!-- My basecode JavaScript -->
-  <script src="./js/newswall.js"></script>
-  <script src="./js/connect.js"></script>
-  
+  <script src="./js/models/user.js"></script>
+  <script src="./js/models/post.js"></script>
+  <script src="./js/models/comment.js"></script>
+  <script src="./js/views/connect.js"></script>
+  <script src="./js/views/newswall.js"></script>
+  <script src="./js/controllers/user.js"></script>
+  <script src="./js/controllers/post.js"></script>
+  <script src="./js/controllers/comment.js"></script>
+  <script>
+    new UserController().stayConnected();
+  </script>
 
 </body>
 

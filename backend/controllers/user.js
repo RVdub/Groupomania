@@ -29,9 +29,9 @@ exports.signup = (req, res, next) => {
           pseudo: req.body.pseudo,
           password: hash,
         });
-        User.create(user, (err, result) => {
-          if (err) {
-            res.status(500).send({ message: err.message || "Some error occurred while creating the Customer." })
+        User.create(user, (error, result) => {
+          if (error) {
+            res.status(401).json({ message: error || "Duplicate user !" })
           } else {
             res.status(201).json({
               userId: result,
@@ -49,56 +49,49 @@ exports.signup = (req, res, next) => {
 };
 
 exports.login = (req, res, next) => {
-  User.findByPseudo(req.body.pseudo, (err, result) => {
-    if (err) {
-      if (err.kind === "not_found") {
-        res.status(401).json({ message: `Utilisateur non trouvé avec ce pseudo ${req.body.pseudo}.` });
-      } else {
-        res.status(500).json({ message: "Erreur lors de la récupération de l'utilisateur " + req.body.pseudo });
-      }
-    } else {
-      bcrypt.compare(req.body.password, result[0].password)
-        .then(valid => {
-          if (!valid) {
-            return res.status(401).json({ error: 'Mot de passe incorrect !' });
-          } else {
-            res.status(201).json({
-              userId: result[0].id,
-              admin: result[0].admin,
-              token: jwt.sign(
-                { userId: result[0].id },
-                process.env.AUTH_TOKEN,
-                { expiresIn: '12h' },
-              )
-            });
-          }
-        })
-        .catch(error => res.status(500).json({ error }));
+  User.findByPseudo(req.body.pseudo, (error, result) => {
+    if (!result.length) {
+      return res.status(401).json({ message: `Utilisateur non trouvé avec ce pseudo ${req.body.pseudo}.` });
     }
+    bcrypt.compare(req.body.password, result[0].password)
+      .then(valid => {
+        if (!valid) {
+          return res.status(402).json({ error: 'Mot de passe incorrect !' });
+        } else {
+          res.status(201).json({
+            userId: result[0].id,
+            admin: result[0].admin,
+            token: jwt.sign(
+              { userId: result[0].id },
+              process.env.AUTH_TOKEN,
+              { expiresIn: '12h' },
+            )
+          });
+        }
+      })
+      .catch(error => res.status(500).json({ error }));
   });
 };
 
 exports.disable = (req, res, next) => {
-  User.remove(req.body.userId, (err, result) => {
-    if (err) {
-      if (err.kind === "not_found") {
-        res.status(404).send({ message: `Utilisateur ${req.body.id} non trouvé !` });
-      } else {
-        res.status(500).send({ message: `Utilisateur ${req.body.id} non supprimé !` });
-      }
-    } else res.status(201).send({ message: `Compte détruit avec succès !` });
+  User.remove(req.params.userId, (error, result) => {
+    if (!result) {
+      return res.status(402).json({ message: `Utilisateur ${req.params.userId} non trouvé !` });
+    } else {
+      User.removePost(req.params.userId);
+      User.removeComment(req.params.userId);
+      return res.status(200).json({ message: `Compte détruit avec succès !` });
+    }
   });
 };
 
 exports.findUserId = (req, res, next) => {
-  User.findById(req.params.userId, (err, result) => {
-    if (err) {
-      if (err.kind === "not_found") {
-        res.status(404).send({ message: `Utilisateur non trouvé avec id ${req.params.userId}.` });
-      } else {
-        res.status(500).send({ message: "Erreur lors de la récupération du client avec l'ID: " + req.params.userId });
-      }
-    } else res.status(200).send(result);
+  User.findById(req.params.userId, (error, result) => {
+    if (!result.length) {
+      return res.status(402).json({ message: `Utilisateur ${req.params.userId} non trouvé !` });
+    } else {
+      return res.status(201).json(result[0]);
+    }
   });
 };
 
@@ -108,20 +101,11 @@ exports.update = (req, res, next) => {
   } else if (!schema.validate(req.body.password)) {
     throw res.status(400).json({ message: 'Mot de passe non valide !' });
   }
-  let id = req.body.userId;
-  delete req.body.userId;
+  let id = req.params.userId;
   if (req.body.oldPassword === req.body.password) {
     delete req.body.oldPassword;
-    User.updateById(id, new User(req.body), (err, result) => {
-      if (err) {
-        if (err.kind === "not_found") {
-          res.status(404).send({ message: `Utilisateur non trouvé avec id ${req.body.userId}.` });
-        } else {
-          res.status(500).send({ message: "Erreur lors de la modification avec id utilisateur: " + req.body.userId });
-        }
-      } else {
-        res.status(201).send({ message: "Contact mis à jour" });
-      }
+    User.updateById(id, new User(req.body), (error, result) => {
+      res.status(201).json({ message: "Contact mis à jour" });
     })
   } else {
     bcrypt.hash(req.body.password, 10)
@@ -131,16 +115,8 @@ exports.update = (req, res, next) => {
           pseudo: req.body.pseudo,
           password: hash,
         });
-        User.updateById(id, user, (err, result) => {
-          if (err) {
-            if (err.kind === "not_found") {
-              res.status(404).send({ message: `Utilisateur non trouvé avec id ${req.body.userId}.` });
-            } else {
-              res.status(500).send({ message: "Erreur lors de la modification avec id utilisateur: " + req.body.userId });
-            }
-          } else {
-            res.status(201).send({ message: "Utilisateur mis à jour" });
-          }
+        User.updateById(id, user, (error, result) => {
+          res.status(201).json({ message: "Utilisateur mis à jour" });
         })
       })
       .catch(error => res.status(500).json({ error }));

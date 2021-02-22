@@ -1,83 +1,87 @@
 const sql = require('../config/db.config');
 
-// constructor
 class User {
   constructor(user) {
     this.email = user.email;
     this.pseudo = user.pseudo;
     this.password = user.password;
-    this.admin;
-    this.createdAt;
-    this.updateAt;
   }
-  static create(user, result) {
-    sql.query("INSERT INTO user SET ?, createdAt = now(), updateAt = now()", user, (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(err, null);
-        return;
-      }
-      result(null, res.insertId);
-    });
+
+  static create(user, callback) {
+    sql.query("INSERT INTO user SET ?, createdAt = now(), updateAt = now()", user,
+      (error, result) => {
+        if (error) {
+          callback(error.errno, 0);
+          return;
+        }
+        callback(error, result.insertId);
+      });
   }
-  static findByPseudo(pseudo, result) {
-    sql.query('SELECT * FROM user WHERE pseudo = ?', pseudo, (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(err, null);
-        return;
-      }
-      if (res.length) {
-        result(null, res);
-        return;
-      }
-      result({ kind: "not_found" }, null);
-    });
+
+  static findByPseudo(pseudo, callback) {
+    sql.query('SELECT * FROM user WHERE pseudo = ?',
+      pseudo, (error, result) => {
+        if (error) {
+          callback(error.errno, 0);
+          return;
+        }
+        callback(error, result);
+      });
   }
-  static remove(userId, result) {
-    sql.query("DELETE FROM user WHERE id = ?", userId, (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(err, null);
-        return;
-      }
-      if (res.affectedRows == 0) {
-        result({ kind: "not_found" }, null);
-        return;
-      }
-      console.log("deleted customer with id: ", userId);
-      result(null, res);
-    });
+
+  static remove(userId, callback) {
+    sql.query("DELETE FROM user WHERE id = ?", userId,
+      (error, result) => {
+        if (error) {
+          callback(error.errno, 0);
+          return;
+        }
+        callback(error, result);
+      });
   }
-  static findById(userId, result) {
-    sql.query(`SELECT * FROM user WHERE id = ${userId}`, (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(err, null);
-        return;
-      }
-      if (res.affectedRows == 0) {
-        result({ kind: "not_found" }, null);
-        return;
-      }
-      console.log("find user: ", userId);
-      result(null, res);
-    });
+
+  static removePost(userId, callback) {
+    sql.query("DELETE FROM post WHERE id IN ( SELECT temp.id FROM ( SELECT id FROM post WHERE user_id = ? ) AS temp );", userId,
+      (error, result) => {
+        if (error) {
+          callback(error.errno, 0);
+          return;
+        }
+        callback(error, result);
+      });
   }
-  static updateById(userId, user, result) {
-    sql.query("UPDATE user SET ?, updateAt = now() WHERE id = ?", [user, userId], (err, res) => {
-      if (err) {
-        console.log("error: ", err);
-        result(err, null);
-        return;
-      }
-      if (res.affectedRows == 0) {
-        result({ kind: "not_found" }, null);
-        return;
-      }
-      console.log("updated user: ", userId);
-      result(null, res);
-    });
+
+  static removeComment(userId, callback) {
+    sql.query("DELETE FROM comment WHERE id IN ( SELECT temp.id FROM ( SELECT id FROM comment WHERE user_id = ? ) AS temp );", userId,
+      (error, result) => {
+        if (error) {
+          callback(error.errno, 0);
+          return;
+        }
+        callback(error, result);
+      });
+  }
+
+  static findById(userId, callback) {
+    sql.query("SELECT * FROM user WHERE id = ?", userId,
+      (error, result) => {
+        if (error) {
+          callback(error.errno, 0);
+          return;
+        }
+        callback(error, result);
+      });
+  }
+  
+  static updateById(userId, user, callback) {
+    sql.query("UPDATE user SET ?, updateAt = now() WHERE id = ?", [user, userId],
+      (error, result) => {
+        if (error) {
+          callback(error.errno, 0);
+          return;
+        }
+        callback(error, result);
+      });
   }
 }
 
