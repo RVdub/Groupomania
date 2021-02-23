@@ -50,6 +50,13 @@ class Comment {
       });
   }
 
+  static deleteByUserId = (userId, callback) => {
+    sql.query(`DELETE FROM comment WHERE user_id = ?`, userId,
+      (error, result) => {
+        callback(error, result);
+      });
+  }
+
   static updateById(commentId, comment, callback) {
     sql.query("UPDATE comment SET ? WHERE id = ?", [comment, commentId],
       (error, result) => {
@@ -58,6 +65,7 @@ class Comment {
   }
 
 }
+
 
 module.exports = Comment;
 

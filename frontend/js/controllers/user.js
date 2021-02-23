@@ -1,6 +1,3 @@
-const HOST = "http://127.0.0.1:3000/";
-
-
 class UserController {
 
     // Test état de la connexion
@@ -10,16 +7,8 @@ class UserController {
         } else { new ViewConnect().displayNavbar(); }
     }
 
-    getFormData(formData) {
-        var objectData = {};
-        formData.forEach(function (value, key) {
-            objectData[key] = value;
-        });
-        return(objectData);
-    }
-
     signin(formData) {
-        let userData = this.getFormData(formData);
+        let userData = getFormData(formData);
         listMessage.innerHTML = "";
         console.log("userData=", userData);
         ModelUser.signin(userData)
@@ -36,7 +25,7 @@ class UserController {
     }
 
     login(formData) {
-        let userData = this.getFormData(formData);
+        let userData = getFormData(formData);
         listMessage.innerHTML = "";
         ModelUser.login(userData)
             .then(response => {
@@ -71,7 +60,7 @@ class UserController {
     }
 
     modifyUser(formData) {
-        let userData = this.getFormData(formData);
+        let userData = getFormData(formData);
         ModelUser.update(userData)
             .then(response => {
                 console.log("response=", response);

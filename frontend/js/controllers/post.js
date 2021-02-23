@@ -1,11 +1,13 @@
 class PostController {
 
     newPost(formData) {
+        let postData = getFormData(formData);
+        console.log("Data=", postData);
         ModelPost.newPost(formData)
             .then(response => {
                 ModelPost.getOnePost(response.insertId)
                     .then(response => {
-                        new ViewWall().showOnePost(response[0]);
+                        new ViewWall().showOnePost(response);
                     })
             })
             .catch(error => {
@@ -45,7 +47,7 @@ class PostController {
     updatePost(postId, formData) {
         ModelPost.update(postId, formData)
             .then(() => {
-                new ViewWall().displayNavbar();      
+                new ViewWall().displayNavbar();    
             })
             .catch(error => {
                 console.log("error=", error);

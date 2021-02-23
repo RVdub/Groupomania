@@ -1,15 +1,15 @@
 class ModelComment {
     
-    static postComment(formData) {
+    static postComment(commentData) {
         return new Promise(function (resolve, reject) {
-            fetch(this.HOST + 'api/comment/',
+            fetch(HOST + 'api/comment/',
                 {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                         'Authorization': 'Bearer ' + localStorage.getItem("token")
                     },
-                    body: formData
+                    body: JSON.stringify(commentData)
                 })
                 .then(response => {
                     console.log("response=", response.status);
@@ -80,7 +80,7 @@ class ModelComment {
         })
     }
 
-    static update(commentId, formData) {
+    static update(commentId, commentData) {
         return new Promise(function (resolve, reject) {
             fetch(HOST + 'api/comment/' + commentId,
                 {
@@ -89,7 +89,7 @@ class ModelComment {
                         "Content-Type": "application/json",
                         'Authorization': 'Bearer ' + localStorage.getItem("token")
                     },
-                    body: formData,
+                    body: JSON.stringify(commentData)
                 })
                 .then(response => {
                     if (response.status == 201) {

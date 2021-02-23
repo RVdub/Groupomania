@@ -1,6 +1,7 @@
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
 const emailValidator = require('email-validator');
+const fs = require('fs');
 
 const dotenv = require("dotenv").config();
 if (dotenv.error) { throw dotenv.error };
@@ -14,6 +15,8 @@ schema
   .has().symbols();
 
 const User = require('../models/user');
+const Post = require('../models/post');
+const Comment = require('../models/comment');
 
 
 exports.signup = (req, res, next) => {
@@ -77,12 +80,17 @@ exports.disable = (req, res, next) => {
   User.remove(req.params.userId, (error, result) => {
     if (!result) {
       return res.status(402).json({ message: `Utilisateur ${req.params.userId} non trouvé !` });
-    } else {
-      User.removePost(req.params.userId);
-      User.removeComment(req.params.userId);
-      return res.status(200).json({ message: `Compte détruit avec succès !` });
     }
-  });
+  })
+  Post.getByUserId(req.params.userId, (error, post) => {
+    const filename = post[0].imageURL.split('images/')[1];
+    fs.unlink(`images/${filename}`, () => { })
+  })
+  Comment.deleteByUserId(req.params.id, (error, result) => {
+    Post.deleteByUserId(req.params.id, (error, result) => {
+      res.status(200).json({ message: `Compte détruit avec succès !` });
+    })
+  })
 };
 
 exports.findUserId = (req, res, next) => {

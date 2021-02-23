@@ -57,7 +57,7 @@ class ModelPost {
                         response.json()
                             .then(data => {
                                 console.log("body=", data);
-                                resolve(data);
+                                resolve(data[0]);
                             })
                     } else { reject(response.status); }
                 })

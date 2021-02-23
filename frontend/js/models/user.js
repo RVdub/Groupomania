@@ -1,5 +1,5 @@
 class ModelUser {
-    
+
     static signin(userData) {
         return new Promise(function (resolve, reject) {
             fetch(HOST + 'api/user/signup/', {

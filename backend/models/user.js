@@ -40,28 +40,6 @@ class User {
       });
   }
 
-  static removePost(userId, callback) {
-    sql.query("DELETE FROM post WHERE id IN ( SELECT temp.id FROM ( SELECT id FROM post WHERE user_id = ? ) AS temp );", userId,
-      (error, result) => {
-        if (error) {
-          callback(error.errno, 0);
-          return;
-        }
-        callback(error, result);
-      });
-  }
-
-  static removeComment(userId, callback) {
-    sql.query("DELETE FROM comment WHERE id IN ( SELECT temp.id FROM ( SELECT id FROM comment WHERE user_id = ? ) AS temp );", userId,
-      (error, result) => {
-        if (error) {
-          callback(error.errno, 0);
-          return;
-        }
-        callback(error, result);
-      });
-  }
-
   static findById(userId, callback) {
     sql.query("SELECT * FROM user WHERE id = ?", userId,
       (error, result) => {

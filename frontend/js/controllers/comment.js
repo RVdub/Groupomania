@@ -1,13 +1,17 @@
 class CommentController {
 
-    async listComments(postId){
-        var response = await ModelComment.getAllComment(postId);
-        console.log("response=", response);
-        return response;
+    async listComments(postId) {
+        try {
+            const response = await ModelComment.getAllComment(postId);
+            console.log("response=", response);
+            return response;
+        } catch (error) { console.log("error=", error); }
     }
 
     postComment(formData) {
-        ModelComment.postComment(formData)
+        let commentData = getFormData(formData);
+        console.log(commentData);
+        ModelComment.postComment(commentData)
             .then(response => {
                 ModelComment.getOneComment(response.insertId)
                     .then(response => {
@@ -39,12 +43,14 @@ class CommentController {
             });
     }
 
-    updateComment(commentId) {
-        ModelComment.update(commentId, formData)
+    updateComment(commentId, formData) {
+        let commentData = getFormData(formData);
+        console.log(commentData);
+        ModelComment.update(commentId, commentData)
             .then(() => {
                 ModelComment.getOneComment(commentId)
                     .then(response => {
-                        new ViewWall().idHtmlComment = 'commentId' + response[0].id;
+                        new ViewWall().idHtmlComment = "commentId" + response[0].id;
                         new ViewWall().showOneComment(response[0]);
                     })
             })

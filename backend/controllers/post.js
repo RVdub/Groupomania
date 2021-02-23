@@ -20,7 +20,7 @@ exports.createPost = (req, res, next) => {
   const post = new Post({
     user_id: req.body.user_id,
     content: req.body.content,
-    imageURL: req.file ? `backend/images/${req.file.filename}` : ""
+    imageURL: req.file ? `images/${req.file.filename}` : ""
     
   });
   Post.create(post, (error, result) => {
@@ -53,7 +53,7 @@ exports.modifyPost = (req, res, next) => {
   const post = new Post({
         user_id: req.body.userId,
         content: req.body.content,
-        imageURL: req.file ? `backend/images/${req.file.filename}` : ""
+        imageURL: req.file ? `images/${req.file.filename}` : ""
       });
   Post.updateById(req.params.id, post, (error, result) => {
     res.status(200).json(result)

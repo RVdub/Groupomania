@@ -2,6 +2,7 @@ class ViewWall {
     constructor() {
         this.invisible = 'invisible';
         this.idHtmlComment = '';
+        this.tagImg = '';
     }
 
 
@@ -26,18 +27,18 @@ class ViewWall {
         document.querySelector("h1").textContent = "Bienvenue sur le fil d'actualité ...";
         template.innerHTML = `
         <div class="card mb-3">
-            <form id="newPost">
             <div class="card-body">
-                <div class="input-group">
-                    <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
-                    <textarea class="form-control" placeholder="Saisissez ici le texte de votre post" name="content" id="content" rows="8" aria-label="Avec zone de texte" required></textarea>
-                </div>
-                <div class="d-grid gap-2 d-md-flex justify-content-md-center">
-                    <input type="file" name="imageURL" id="imageURL" accept="image/*" aria-label="Télécharger une image">
-                    <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
-                </div>
+                <form id="newPost">
+                    <div class="input-group">
+                        <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
+                        <textarea class="form-control" placeholder="Saisissez ici le texte de votre post" name="content" id="content" rows="8" aria-label="Avec zone de texte" required></textarea>
+                    </div>
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-center input-group">
+                        <input type="file" name="imageURL" id="imageURL" accept="image/*" aria-label="Télécharger une image">
+                        <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
+                    </div>
+                </form>    
             </div>
-            </form>
         </div>
         <div id="insertOnePost"></div>`;
         // Envoi formulaire
@@ -53,64 +54,70 @@ class ViewWall {
 
     // Affichage des posts et des commentaires associés
     async showListPost(post) {
-        for (let i = 0; i < post.length; i++) {
-            if (post[i].user_id == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
+        for (let postNum = 0; postNum < post.length; postNum++) {
+            if (post[postNum].user_id == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
                 this.invisible = "visible";
             } else {
                 this.invisible = "invisible";
             }
-            let date = new Date(post[i].updateAt);
+            if (post[postNum].imageURL) {
+                this.tagImg = `<img class="card-img-top" src="${HOST + post[postNum].imageURL}" alt="photo de l'utilisateur" />`;
+            } else {
+                this.tagImg = '';
+            }
+            let date = new Date(post[postNum].updateAt);
             template.innerHTML += `
-            <div class="card mb-3" id="postId${post[i].id}">
-                <img class="card-img-top" src="${HOST + post[i].imageURL}" alt="">
+            <div class="card mb-3" id="postId${post[postNum].id}">
+                ${this.tagImg}
                 <div class="card-body">
-                    <h5 class="card-title">${post[i].pseudo} a publié le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} </h5>
-                    <p class="card-text">${post[i].content}</p>
+                    <h5 class="card-title">${post[postNum].pseudo} a publié le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} </h5>
+                    <p class="card-text">${post[postNum].content}</p>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new PostController().getOnePost(${post[i].id});">Modifier</button>
-                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new PostController().deletePost(${post[i].id});">Supprimer</button>
+                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new PostController().getOnePost(${post[postNum].id});">Modifier</button>
+                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new PostController().deletePost(${post[postNum].id});">Supprimer</button>
                     </div>
-                </div>`;
-            let comment = await new CommentController().listComments(post[i].id);
-            for (let j = 0; j < comment.length; j++) {
-                if (comment[j].user_id == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
+                </div>
+                <ul class="list-group list-group-flush">`;
+            // les commentaires associés
+            let comment = await new CommentController().listComments(post[postNum].id);
+            for (let commentNum = 0; commentNum < comment.length; commentNum++) {
+                if (comment[commentNum].user_id == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
                     this.invisible = "visible";
                 } else {
                     this.invisible = "invisible";
                 }
-                let date = new Date(comment[j].updateAt);
+                let date = new Date(comment[commentNum].updateAt);
                 template.innerHTML += `
-                <ul class="list-group list-group-flush">
-                    <li class="list-group-item text-muted" id="commentId${comment[j].id}">
-                    Commenté par ${comment[j].pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} :
-                    <small class="text-muted">${comment[j].content}</small>
-                    </li>
+                <li class="list-group-item text-muted" id="commentId${comment[commentNum].id}">
+                    Commenté par ${comment[commentNum].pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} :
+                    <small class="text-muted">${comment[commentNum].content}</small>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new CommentController().getOneComment(${comment[j].id});">Modifier</button>
-                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new CommentController().deleteComment(${comment[j].id});">Supprimer</button>
-                    </div>`;
+                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new CommentController().getOneComment(${comment[commentNum].id});">Modifier</button>
+                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new CommentController().deleteComment(${comment[commentNum].id});">Supprimer</button>
+                    </div>
+                </li>`;
             }
-            // Formulaire nouveau commentaire
+            // Formulaire nouveau commentaire (un seul formulaire par post)
             template.innerHTML += `
-                </ul>
-                <div class="card mb-3">
-                    <form class="input-group" id="newComment${i}">
+                <li class="list-group-item text-muted mb-3">
+                    <form class="input-group" id="newComment${postNum}">
                         <textarea class="form-control" placeholder="Saisissez ici le texte de votre commentaire" name="content" rows="2" aria-label="Avec zone de texte" required></textarea>
                         <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
-                        <input type="hidden" name="post_id" value="${post[i].id}">
+                        <input type="hidden" name="post_id" value="${post[postNum].id}">
                     </form>    
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                         <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
                     </div>
-                </div>
+                </li>
+                </ul>
             </div>`;
             // Envoi formulaire
-            const form = document.getElementById("newComment${i}");
-            this.idHtmlComment = `newComment${i}`;
+            const form = document.getElementById('newComment'+ postNum);
             form.addEventListener("submit", function (event) {
                 event.preventDefault();
+                this.idHtmlComment = 'newComment'+ postNum;
                 const formData = new FormData(this);
-                new CommentController().newPost(formData);
+                new CommentController().postComment(formData);
             });
         }
     }
@@ -129,7 +136,7 @@ class ViewWall {
                             </button>
                     </div>
                     <div class="modal-body">
-                        <form name="modify_post" id="form4">
+                        <form id="form4">
                             <div class="input-group">
                                 <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
                                 <textarea class="form-control" name="content" rows="8" aria-label="Avec zone de texte">${post.content}</textarea>
@@ -146,20 +153,27 @@ class ViewWall {
         </div>`;
         $('#myModal').modal('show');
         // Envoi formulaire
-        document.getElementById("form4").addEventListener("submit", function (event) {
+        const form = document.getElementById("form4");
+        form.addEventListener("submit", function (event) {
             event.preventDefault();
-            const formData = new FormData(document.getElementById('form4'));
+            const formData = new FormData(this);
             new PostController().updatePost(postId, formData);
             $('#myModal').modal('hide');
         })
     }
 
-    // Affichage d'un seul post
+    // Affichage d'un post après publication
     showOnePost(post) {
-        let date = new Date(post.updateAt);
-        document.getElementById('insertOnePost').outerHTML = `
+        console.log(post);
+        if (post.imageURL) {
+            this.tagImg = `<img class="card-img-top" src="${HOST + post.imageURL}" alt="photo de l'utilisateur">`;
+        } else {
+            this.tagImg = '';
+        }
+        let date = new Date(post.updateAt); console.log(this.tagImg);
+        insertOnePost.innerHTML += `
         <div class="card mb-3">
-            <img class="card-img-top" src="${HOST + post.imageURL}" alt="">
+            ${this.tagImg}
             <div class="card-body">
                 <h5 class="card-title">${post.pseudo} a publié le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} </h5>
                 <p class="card-text">${post.content}</p>
@@ -189,22 +203,23 @@ class ViewWall {
     modifyComment(comment) {
         let commentId = comment.id;
         let date = new Date(comment.updateAt);
-        document.getElementById(`commentId${comment.id}`).outerHTML += `
+        document.getElementById('commentId'+ comment.id).outerHTML = `
         <div id="commentId${comment.id}">
             <h5 class="card-title text-muted">Commenté par ${comment.pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} </h5>
-            <form class="input-group" name="modify_post" id="form5">
+            <form class="input-group" id="form5">
                 <textarea class="form-control" name="content" rows="3" aria-label="Avec zone de texte">${comment.content}</textarea>
                 <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
-                <input type="hidden" name="post_id" value="${post.id}">
-           </form>
+                <input type="hidden" name="post_id" value="${comment.post_id}">
+            </form>
             <div class="d-grid gap-2 d-md-flex justify-content-md-end">
                 <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
             </div>
         </div>`;
         // Envoi formulaire
-        document.getElementById("form5").addEventListener("submit", function (event) {
+        const form = document.getElementById("form5");
+        form.addEventListener("submit", function (event) {
             event.preventDefault();
-            const formData = new FormData(document.getElementById('form5'));
+            const formData = new FormData(this);
             new CommentController().updateComment(commentId, formData);
         })
     }

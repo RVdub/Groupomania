@@ -17,7 +17,7 @@ class Post {
 
   static getAll(callback) {
     sql.query(`SELECT post.*, user.pseudo
-        FROM post,user
+        FROM post, user
         WHERE post.user_id = user.id 
         ORDER BY post.updateAt DESC`,
       (error, result) => {
@@ -26,7 +26,9 @@ class Post {
   }
 
   static getOne(postId, callback) {
-    sql.query("SELECT post.* FROM post WHERE post.id = ?", postId,
+    sql.query(`SELECT post.*, user.pseudo
+        FROM post, user
+        WHERE post.user_id = user.id AND post.id = ?`, postId,
       (error, result) => {
         callback(error, result);
       });
@@ -46,7 +48,29 @@ class Post {
       }
     );
   }
-  
+
+  static getByUserId(userId, callback) {
+    sql.query("SELECT * FROM post WHERE user_id = ?", userId,
+      (error, result) => {
+        if (error) {
+          callback(error.errno, 0);
+          return;
+        }
+        callback(error, result);
+      });
+  }
+
+  static deleteByUserId(userId, callback) {
+    sql.query("DELETE FROM post WHERE user_id = ?", userId,
+      (error, result) => {
+        if (error) {
+          callback(error.errno, 0);
+          return;
+        }
+        callback(error, result);
+      });
+  }
+
 }
 
 
