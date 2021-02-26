@@ -12,8 +12,7 @@ class ModelComment {
                     body: JSON.stringify(commentData)
                 })
                 .then(response => {
-                    console.log("response=", response.status);
-                    if (response.status == 200) {
+                    if (response.status == 201) {
                         response.json()
                             .then(data => {
                                 resolve(data);

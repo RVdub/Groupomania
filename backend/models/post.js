@@ -44,7 +44,7 @@ class Post {
   static updateById(postId, post, callback) {
     sql.query("UPDATE post SET ?, updateAt = now() WHERE id = ?", [post, postId],
       (error, result) => {
-        callBack(error, result);
+        callback(error, result);
       }
     );
   }
@@ -61,7 +61,9 @@ class Post {
   }
 
   static deleteByUserId(userId, callback) {
-    sql.query("DELETE FROM post WHERE user_id = ?", userId,
+    sql.query(`SET SQL_SAFE_UPDATES = 0;
+              DELETE FROM post WHERE user_id = ?;
+              SET SQL_SAFE_UPDATES = 1;`, userId,
       (error, result) => {
         if (error) {
           callback(error.errno, 0);

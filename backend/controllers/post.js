@@ -21,7 +21,7 @@ exports.createPost = (req, res, next) => {
     user_id: req.body.user_id,
     content: req.body.content,
     imageURL: req.file ? `images/${req.file.filename}` : ""
-    
+
   });
   Post.create(post, (error, result) => {
     res.status(200).json({ insertId: result.insertId })
@@ -35,28 +35,37 @@ exports.deletePost = (req, res, next) => {
   })
   Comment.deleteByPostId(req.params.id, (error, result) => {
     Post.delete(req.params.id, (error, result) => {
-      res.status(200).json(result);
+      res.status(200).json({ message: "Publication supprimée avec ses commentaires" });
     })
   })
 }
 
 exports.modifyPost = (req, res, next) => {
   req.file = req.files[0];
-  let oldImageUrl;
   Post.getOne(req.params.id, (error, post) => {
-    oldImageUrl = post[0].imageUrl;
+    let oldImageUrl = post[0].imageURL;
     if (req.file) {
-      const oldFilename = oldImageUrl.split('/images/')[1];
-      fs.unlinkSync(`images/${oldFilename}`);
+      const oldFilename = oldImageUrl.split('images/')[1];
+      fs.unlink(`images/${oldFilename}`, () => { });
+      const post = new Post({
+        user_id: req.body.user_id,
+        content: req.body.content,
+        imageURL: `images/${req.file.filename}`
+      });
+      Post.updateById(req.params.id, post, (error, result) => {
+        res.status(201).json({ message: "Publication mise à jour avec photo" });
+      })
+    } else {
+      const post = new Post({
+        user_id: req.body.user_id,
+        content: req.body.content,
+        imageURL: oldImageUrl
+      });
+      Post.updateById(req.params.id, post, (error, result) => {
+        res.status(201).json({ message: "Publication mise à jour" });
+      })
     }
   })
-  const post = new Post({
-        user_id: req.body.userId,
-        content: req.body.content,
-        imageURL: req.file ? `images/${req.file.filename}` : ""
-      });
-  Post.updateById(req.params.id, post, (error, result) => {
-    res.status(200).json(result)
-  })
 }
+
 

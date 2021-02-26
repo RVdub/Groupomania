@@ -44,14 +44,18 @@ class Comment {
   }
 
   static deleteByPostId = (postId, callback) => {
-    sql.query(`DELETE FROM comment WHERE post_id = ?`, postId,
+    sql.query(`SET SQL_SAFE_UPDATES = 0;
+              DELETE FROM comment WHERE post_id = ?;
+              SET SQL_SAFE_UPDATES = 1;`, postId,
       (error, result) => {
         callback(error, result);
       });
   }
 
   static deleteByUserId = (userId, callback) => {
-    sql.query(`DELETE FROM comment WHERE user_id = ?`, userId,
+    sql.query(`SET SQL_SAFE_UPDATES = 0;
+            DELETE FROM comment WHERE user_id = ?;
+            SET SQL_SAFE_UPDATES = 1;`, userId,
       (error, result) => {
         callback(error, result);
       });

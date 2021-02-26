@@ -38,6 +38,7 @@ exports.signup = (req, res, next) => {
           } else {
             res.status(201).json({
               userId: result,
+              admin: 0,
               token: jwt.sign(
                 { userId: result },
                 process.env.AUTH_TOKEN,
@@ -83,11 +84,13 @@ exports.disable = (req, res, next) => {
     }
   })
   Post.getByUserId(req.params.userId, (error, post) => {
-    const filename = post[0].imageURL.split('images/')[1];
-    fs.unlink(`images/${filename}`, () => { })
+    for (let row = 0; row < post.length; row++) {
+    const filename = post[row].imageURL.split('images/')[1];
+    fs.unlink(`images/${filename}`, () => { });
+    }
   })
-  Comment.deleteByUserId(req.params.id, (error, result) => {
-    Post.deleteByUserId(req.params.id, (error, result) => {
+  Comment.deleteByUserId(req.params.userId, (error, result) => {
+    Post.deleteByUserId(req.params.userId, (error, result) => {
       res.status(200).json({ message: `Compte détruit avec succès !` });
     })
   })

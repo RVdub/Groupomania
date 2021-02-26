@@ -10,12 +10,11 @@ class UserController {
     signin(formData) {
         let userData = getFormData(formData);
         listMessage.innerHTML = "";
-        console.log("userData=", userData);
         ModelUser.signin(userData)
             .then(response => {
-                console.log("response=", response);
                 localStorage.setItem("userId", response.userId);
                 localStorage.setItem("token", response.token);
+                localStorage.setItem("admin", response.admin);
                 new ViewWall().displayNavbar();
             })
             .catch(error => {
@@ -29,7 +28,6 @@ class UserController {
         listMessage.innerHTML = "";
         ModelUser.login(userData)
             .then(response => {
-                console.log("response=", response);
                 localStorage.setItem("userId", response.userId);
                 localStorage.setItem("token", response.token);
                 localStorage.setItem("admin", response.admin);
@@ -51,7 +49,6 @@ class UserController {
         if (localStorage.getItem("admin") == 1) return;
         ModelUser.getOne()
             .then(response => {
-                console.log("response=", response);
                 new ViewConnect().modifyAccount(response);
             })
             .catch(error => {
@@ -63,7 +60,6 @@ class UserController {
         let userData = getFormData(formData);
         ModelUser.update(userData)
             .then(response => {
-                console.log("response=", response);
                 new ViewWall().displayNavbar();
             })
             .catch(error => {

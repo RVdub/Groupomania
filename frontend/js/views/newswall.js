@@ -1,8 +1,7 @@
 class ViewWall {
     constructor() {
-        this.invisible = 'invisible';
-        this.idHtmlComment = '';
-        this.tagImg = '';
+        this.invisible;
+        this.tagImg;
     }
 
 
@@ -19,13 +18,16 @@ class ViewWall {
                 </div>
             </div>
         </nav>`;
+        template.innerHTML = '';
         this.formPost();
     }
 
     // Formulaire nouveau post
     formPost() {
         document.querySelector("h1").textContent = "Bienvenue sur le fil d'actualité ...";
-        template.innerHTML = `
+        const formPost = document.createElement('div');
+        template.appendChild(formPost);
+        formPost.innerHTML = `
         <div class="card mb-3">
             <div class="card-body">
                 <form id="newPost">
@@ -37,10 +39,12 @@ class ViewWall {
                         <input type="file" name="imageURL" id="imageURL" accept="image/*" aria-label="Télécharger une image">
                         <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
                     </div>
-                </form>    
+                </form>
             </div>
-        </div>
-        <div id="insertOnePost"></div>`;
+        </div>`;
+        const insertPost = document.createElement('div');
+        template.appendChild(insertPost);
+        insertPost.innerHTML = `<div id="insertOnePost"></div>`;
         // Envoi formulaire
         const form = document.getElementById("newPost");
         form.addEventListener("submit", function (event) {
@@ -54,123 +58,145 @@ class ViewWall {
 
     // Affichage des posts et des commentaires associés
     async showListPost(post) {
-        for (let postNum = 0; postNum < post.length; postNum++) {
-            if (post[postNum].user_id == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
+        for (let row = 0; row < post.length; row++) {
+            if (post[row].user_id == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
                 this.invisible = "visible";
             } else {
                 this.invisible = "invisible";
             }
-            if (post[postNum].imageURL) {
-                this.tagImg = `<img class="card-img-top" src="${HOST + post[postNum].imageURL}" alt="photo de l'utilisateur" />`;
+            if (post[row].imageURL) {
+                this.tagImg = `<img class="card-img-top" src="${HOST + post[row].imageURL}" alt="photo de l'utilisateur" />`;
             } else {
                 this.tagImg = '';
             }
-            let date = new Date(post[postNum].updateAt);
-            template.innerHTML += `
-            <div class="card mb-3" id="postId${post[postNum].id}">
+            let date = new Date(post[row].updateAt);
+            let listPost = document.createElement('div');
+            template.appendChild(listPost);
+            listPost.innerHTML += `
+            <div class="card" id="postId${post[row].id}">
                 ${this.tagImg}
                 <div class="card-body">
-                    <h5 class="card-title">${post[postNum].pseudo} a publié le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} </h5>
-                    <p class="card-text">${post[postNum].content}</p>
+                    <h5 class="card-title">${post[row].pseudo} a publié le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} </h5>
+                    <p class="card-text">${post[row].content}</p>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new PostController().getOnePost(${post[postNum].id});">Modifier</button>
-                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new PostController().deletePost(${post[postNum].id});">Supprimer</button>
+                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new PostController().getOnePost(${post[row].id});">Modifier</button>
+                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new PostController().deletePost(${post[row].id});">Supprimer</button>
                     </div>
                 </div>
                 <ul class="list-group list-group-flush">`;
+
             // les commentaires associés
-            let comment = await new CommentController().listComments(post[postNum].id);
-            for (let commentNum = 0; commentNum < comment.length; commentNum++) {
-                if (comment[commentNum].user_id == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
+            let comment = await new CommentController().listComments(post[row].id);
+            for (let line = 0; line < comment.length; line++) {
+                if (comment[line].user_id == localStorage.getItem("userId") || localStorage.getItem("admin") == 1) {
                     this.invisible = "visible";
                 } else {
                     this.invisible = "invisible";
                 }
-                let date = new Date(comment[commentNum].updateAt);
-                template.innerHTML += `
-                <li class="list-group-item text-muted" id="commentId${comment[commentNum].id}">
-                    Commenté par ${comment[commentNum].pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} :
-                    <small class="text-muted">${comment[commentNum].content}</small>
+                let date = new Date(comment[line].updateAt);
+                listPost.innerHTML += `
+                <li class="list-group-item text-muted" id="commentId${comment[line].id}">
+                    Commenté par ${comment[line].pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} :
+                    <small class="text-muted">${comment[line].content}</small>
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new CommentController().getOneComment(${comment[commentNum].id});">Modifier</button>
-                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new CommentController().deleteComment(${comment[commentNum].id});">Supprimer</button>
+                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new CommentController().getOneComment(${comment[line].id});">Modifier</button>
+                        <button type="button" class="btn btn-secondary btn-sm ${this.invisible}" onclick="new CommentController().deleteComment(${comment[line].id});">Supprimer</button>
                     </div>
                 </li>`;
+                if (line === (comment.length - 1)) { listPost.innerHTML += `</ul></div>` }
             }
-            // Formulaire nouveau commentaire (un seul formulaire par post)
-            template.innerHTML += `
-                <li class="list-group-item text-muted mb-3">
-                    <form class="input-group" id="newComment${postNum}">
-                        <textarea class="form-control" placeholder="Saisissez ici le texte de votre commentaire" name="content" rows="2" aria-label="Avec zone de texte" required></textarea>
-                        <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
-                        <input type="hidden" name="post_id" value="${post[postNum].id}">
-                    </form>    
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                        <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
-                    </div>
-                </li>
-                </ul>
-            </div>`;
-            // Envoi formulaire
-            const form = document.getElementById('newComment'+ postNum);
-            form.addEventListener("submit", function (event) {
-                event.preventDefault();
-                this.idHtmlComment = 'newComment'+ postNum;
-                const formData = new FormData(this);
-                new CommentController().postComment(formData);
-            });
+            this.formComment(post[row].id);
         }
     }
 
+    // Formulaire nouveau commentaire (un seul formulaire par post)
+    formComment(postId) {
+        const formComment = document.createElement('div');
+        template.appendChild(formComment);
+        formComment.innerHTML = `
+        <div class="accordion mb-3" id="accordionExample${postId}">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingOne${postId}">
+                    <button id="btn-accordion${postId}" class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapseOne${postId}" aria-expanded="true" aria-controls="collapseOne${postId}}">
+                        Saisissez ici le texte de votre commentaire
+                    </button>
+                </h2>
+                <div id="collapseOne${postId}" class="accordion-collapse collapse" aria-labelledby="headingOne${postId}" data-bs-parent="#accordionExample${postId}">
+                    <div class="accordion-body">
+                    <form id="newComment${postId}">
+                        <div class="input-group">
+                            <textarea class="form-control" name="content" rows="2" aria-label="Avec zone de texte" required></textarea>
+                            <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
+                            <input type="hidden" name="post_id" value="${postId}">
+                        </div>
+                        <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                            <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
+                        </div>
+                    </form>
+                    </div>
+                </div>
+            </div>
+        </div>`;
+        // Envoi formulaire
+        const form = document.getElementById('newComment' + postId);
+        form.addEventListener('submit', function (event) {
+            event.preventDefault();
+            const formData = new FormData(this);
+            new CommentController().postComment(postId, formData);
+        });
+    }
+
+
+
+    // Affichage après modification ------------------------------------------------------------------------------------
     // Fenêtre modale modification d'un post
     addModal(post) {
         let postId = post.id;
-        template.innerHTML += `
+        listMessage.innerHTML = `
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
             <div class="modal-dialog" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="ModalLabel">Modifiez le texte et/ou la photo</h5>
-                            <button type="button" class="close" data-dismiss="modal" aria-label="Fermer">
-                                <span aria-hidden="true">&times;</span>
-                            </button>
                     </div>
                     <div class="modal-body">
                         <form id="form4">
                             <div class="input-group">
                                 <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
-                                <textarea class="form-control" name="content" rows="8" aria-label="Avec zone de texte">${post.content}</textarea>
-                                <input type="file" name="imageURL" accept="image/*" aria-label="Télécharger une image">
+                                <textarea class="form-control col-12" name="content" rows="8" cols="80" aria-label="Avec zone de texte">${post.content}</textarea>
+                                <div class="col-12">
+                                    <input type="file" name="imageURL" accept="image/*" aria-label="Télécharger une image">
+                                </div>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center input-group">
+                                <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
+                                <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Fermer</button>
                             </div>
                         </form>
-                    </div>
-                    <div class="modal-footer">
-                        <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
-                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Fermer</button>
                     </div>
                 </div>
             </div>
         </div>`;
-        $('#myModal').modal('show');
+        const myModal = new bootstrap.Modal(document.getElementById("myModal"));
+        myModal.show();
         // Envoi formulaire
-        const form = document.getElementById("form4");
-        form.addEventListener("submit", function (event) {
+        const form = document.getElementById('form4');
+        form.addEventListener('submit', function (event) {
             event.preventDefault();
             const formData = new FormData(this);
             new PostController().updatePost(postId, formData);
-            $('#myModal').modal('hide');
+            myModal.hide();
         })
     }
 
-    // Affichage d'un post après publication
+    // Affichage d'un nouveau post
     showOnePost(post) {
-        console.log(post);
         if (post.imageURL) {
             this.tagImg = `<img class="card-img-top" src="${HOST + post.imageURL}" alt="photo de l'utilisateur">`;
         } else {
             this.tagImg = '';
         }
-        let date = new Date(post.updateAt); console.log(this.tagImg);
+        let date = new Date(post.updateAt);
         insertOnePost.innerHTML += `
         <div class="card mb-3">
             ${this.tagImg}
@@ -178,50 +204,65 @@ class ViewWall {
                 <h5 class="card-title">${post.pseudo} a publié le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} </h5>
                 <p class="card-text">${post.content}</p>
                 <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                    <button type="button" class="btn btn-secondary btn-sm" onclick="new PostController().modifyPost(${post.id});">Modifier</button>
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="new PostController().getOnePost(${post.id});">Modifier</button>
                     <button type="button" class="btn btn-secondary btn-sm" onclick="new PostController().deletePost(${post.id});">Supprimer</button>
                 </div>
             </div>
         </div>`;
     }
 
-    // Affichage d'un seul commentaire
-    showOneComment(comment) {
+    // Affichage d'un nouveau commentaire
+    showOneComment(postId, comment) {
         let date = new Date(comment.updateAt);
-        document.getElementsById(this.idHtmlComment).outerHTML = `
-        <div id="commentId${comment.id}">
-            <h5 class="card-title text-muted">Commenté par ${comment.pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} </h5>
-            <p class="card-text"><small class="text-muted">${comment.content}</small></p>
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="button" class="btn btn-secondary btn-sm" onclick="new CommentController().modifyComment(${comment.id});">Modifier</button>
-                <button type="button" class="btn btn-secondary btn-sm" onclick="new CommentController().deleteComment(${comment.id});">Supprimer</button>
-            </div>
-        </div>`;
+        document.getElementById('newComment'+ postId).outerHTML = `
+            <li class="list-group-item text-muted" id="commentId${comment.id}">
+                Commenté par ${comment.pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} :
+                <small class="text-muted">${comment.content}</small>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="new CommentController().getOneComment(${comment.id});">Modifier</button>
+                </div>
+            </li>`;
+        document.getElementById('btn-accordion'+ postId).textContent = `${comment.pseudo}, votre nouveau commentaire...`;
     }
 
     // Modification d'un commentaire
     modifyComment(comment) {
         let commentId = comment.id;
         let date = new Date(comment.updateAt);
-        document.getElementById('commentId'+ comment.id).outerHTML = `
-        <div id="commentId${comment.id}">
-            <h5 class="card-title text-muted">Commenté par ${comment.pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} </h5>
-            <form class="input-group" id="form5">
-                <textarea class="form-control" name="content" rows="3" aria-label="Avec zone de texte">${comment.content}</textarea>
-                <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
-                <input type="hidden" name="post_id" value="${comment.post_id}">
+        document.getElementById('commentId' + comment.id).outerHTML = `
+        <li class="list-group-item text-muted" id="commentId${comment.id}">
+            Commenté par ${comment.pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)}
+            <form id="form5">
+                <div class="input-group">
+                    <textarea class="form-control" name="content" rows="2" aria-label="Avec zone de texte">${comment.content}</textarea>
+                    <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
+                    <input type="hidden" name="post_id" value="${comment.post_id}">
+                    <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                        <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
+                    </div>
+                </div>
             </form>
-            <div class="d-grid gap-2 d-md-flex justify-content-md-end">
-                <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
-            </div>
-        </div>`;
+        </li>`;
         // Envoi formulaire
-        const form = document.getElementById("form5");
-        form.addEventListener("submit", function (event) {
+        const form = document.getElementById('form5');
+        form.addEventListener('submit', function (event) {
             event.preventDefault();
             const formData = new FormData(this);
             new CommentController().updateComment(commentId, formData);
         })
+    }
+
+    // Affichage d'un commentaire modifié
+    showModifyComment(comment) {
+        let date = new Date(comment.updateAt);
+        document.getElementById('commentId'+ comment.id).outerHTML = `
+            <li class="list-group-item text-muted" id="commentId${comment.id}">
+                Commenté par ${comment.pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)} :
+                <small class="text-muted">${comment.content}</small>
+                <div class="d-grid gap-2 d-md-flex justify-content-md-end">
+                    <button type="button" class="btn btn-secondary btn-sm" onclick="new CommentController().getOneComment(${comment.id});">Modifier</button>
+                </div>
+            </li>`;
     }
 
 }

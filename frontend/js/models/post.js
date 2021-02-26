@@ -56,7 +56,6 @@ class ModelPost {
                     if (response.status == 200) {
                         response.json()
                             .then(data => {
-                                console.log("body=", data);
                                 resolve(data[0]);
                             })
                     } else { reject(response.status); }

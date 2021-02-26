@@ -1,8 +1,6 @@
 class PostController {
 
     newPost(formData) {
-        let postData = getFormData(formData);
-        console.log("Data=", postData);
         ModelPost.newPost(formData)
             .then(response => {
                 ModelPost.getOnePost(response.insertId)
@@ -18,7 +16,6 @@ class PostController {
     showListPost() {
         ModelPost.getAllPost()
             .then(response => {
-                console.log(response);
                 new ViewWall().showListPost(response);
             })
             .catch(error => {
@@ -30,7 +27,8 @@ class PostController {
     deletePost(postId) {
         ModelPost.deletePost(postId)
             .then(() => {
-                document.getElementById("postId" + postId).remove();
+                document.getElementById('postId' + postId).remove();
+                document.getElementById('accordionExample' + postId).remove();
             })
     }
 
@@ -47,12 +45,12 @@ class PostController {
     updatePost(postId, formData) {
         ModelPost.update(postId, formData)
             .then(() => {
-                new ViewWall().displayNavbar();    
+                window.location.href = "./index.html";
             })
             .catch(error => {
                 console.log("error=", error);
             });      
     }
-
+    
 }
 
