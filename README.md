@@ -12,9 +12,15 @@ Javascript, serveur NodeJS, Frameworks Express et Bootstrap, Base de données My
 
 ## Comment lancer l'application ##
 
-Installer un serveur MySQL sur localhost. Utiliser le fichier sql dans le répertoire backend du projet pour créer la base de données.
+Installer un serveur MySQL sur localhost. Utiliser le fichier groupomania.sql dans le répertoire backend du projet pour créer la base de données.
 
 Créer votre fichier .env à la base du backend avec les variables environnement: HOST, USER, PASSWORD, DB (correspondant à votre serveur MySQL) et le code secret de votre choix pour AUTH_TOKEN.
+Ci-joint un exemple:
+HOST=localhost
+USER=groupomania_user
+PASSWORD=mon_mot_de_passe
+DB=groupomania
+AUTH_TOKEN=eyJhbGciOiJIkpXVCJ9IUzI1NiIsInR5cCI6
 
 Créer un répertoire images dans backend, qui recevra la collection de fichiers photo des utilisateurs.
 
