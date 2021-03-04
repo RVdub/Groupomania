@@ -28,18 +28,27 @@ class ViewWall {
         const formPost = document.createElement('div');
         template.appendChild(formPost);
         formPost.innerHTML = `
-        <div class="card mb-3">
-            <div class="card-body">
-                <form id="newPost">
-                    <div class="input-group">
-                        <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
-                        <textarea class="form-control" placeholder="Saisissez ici le texte de votre post" name="content" id="content" rows="8" aria-label="Avec zone de texte" required></textarea>
+        <div class="accordion mb-3" id="accordionPost">
+            <div class="accordion-item">
+                <h2 class="accordion-header" id="headingPost">
+                <button id="btn-accordionPost" class="accordion-button" type="button" data-bs-toggle="collapse" data-bs-target="#collapsePost" aria-expanded="true" aria-controls="collapsePost">
+                    Saisissez ici le texte de votre post
+                </button>
+                </h2>
+                <div id="collapsePost" class="accordion-collapse collapse" aria-labelledby="headingPost" data-bs-parent="#accordionPost">
+                    <div class="accordion-body">
+                        <form id="newPost">
+                            <div class="input-group">
+                                <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
+                                <textarea class="form-control" name="content" id="content" rows="8" aria-label="Avec zone de texte" required></textarea>
+                            </div>
+                            <div class="d-grid gap-2 d-md-flex justify-content-md-center input-group">
+                                <input type="file" name="imageURL" id="imageURL" accept="image/*" aria-label="Télécharger une image">
+                                <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
+                            </div>
+                        </form>
                     </div>
-                    <div class="d-grid gap-2 d-md-flex justify-content-md-center input-group">
-                        <input type="file" name="imageURL" id="imageURL" accept="image/*" aria-label="Télécharger une image">
-                        <button type="submit" class="btn btn-secondary btn-sm">Publier</button>
-                    </div>
-                </form>
+                </div>
             </div>
         </div>`;
         const insertPost = document.createElement('div');
@@ -125,7 +134,7 @@ class ViewWall {
                     <div class="accordion-body">
                     <form id="newComment${postId}">
                         <div class="input-group">
-                            <textarea class="form-control" name="content" rows="2" aria-label="Avec zone de texte" required></textarea>
+                            <textarea class="form-control" name="content" rows="4" aria-label="Avec zone de texte" required></textarea>
                             <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
                             <input type="hidden" name="post_id" value="${postId}">
                         </div>
@@ -148,13 +157,13 @@ class ViewWall {
 
 
 
-    // Affichage après modification ------------------------------------------------------------------------------------
+    // Affichage après modification ou saisie ---------------------------------------------------------------------------
     // Fenêtre modale modification d'un post
     addModal(post) {
         let postId = post.id;
         listMessage.innerHTML = `
         <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="ModalLabel" aria-hidden="true">
-            <div class="modal-dialog" role="document">
+            <div class="modal-dialog modal-xl" role="document">
                 <div class="modal-content">
                     <div class="modal-header">
                         <h5 class="modal-title" id="ModalLabel">Modifiez le texte et/ou la photo</h5>
@@ -234,7 +243,7 @@ class ViewWall {
             Commenté par ${comment.pseudo} le ${new Intl.DateTimeFormat('fr-FR', { dateStyle: 'full' }).format(date)}
             <form id="form5">
                 <div class="input-group">
-                    <textarea class="form-control" name="content" rows="2" aria-label="Avec zone de texte">${comment.content}</textarea>
+                    <textarea class="form-control" name="content" rows="4" aria-label="Avec zone de texte">${comment.content}</textarea>
                     <input type="hidden" name="user_id" value="${localStorage.getItem('userId')}">
                     <input type="hidden" name="post_id" value="${comment.post_id}">
                     <div class="d-grid gap-2 d-md-flex justify-content-md-end">
